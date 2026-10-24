@@ -1,4 +1,6 @@
 import sys
+import hashlib
+import tempfile
 from pathlib import Path
 
 # Ensure backend root directory is in sys.path
@@ -158,13 +160,21 @@ def test_ml_analyze_log_removed():
     print("[PASS] POST /api/ml/analyze-log correctly absent (404/405)")
 
 
-def test_ml_train_endpoint():
-    response = client.post("/api/ml/train", json={"contamination": 0.05, "random_state": 42})
-    assert response.status_code == 200
-    data = response.json()
-    assert data["status"] == "trained"
-    assert data["events_trained"] == 809
-    print("[PASS] POST /api/ml/train passed (Isolation Forest retrained & persisted)")
+def test_ml_train_endpoint_does_not_write_production_model(monkeypatch):
+    production_model = backend_dir / "data" / "models" / "isolation_forest_baseline.joblib"
+    before_hash = hashlib.sha256(production_model.read_bytes()).hexdigest()
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        isolated_model = Path(tmp_dir) / "test-api-model.joblib"
+        monkeypatch.setenv("ARGUS_X_MODEL_PATH", str(isolated_model))
+        response = client.post("/api/ml/train", json={"contamination": 0.05, "random_state": 42})
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "trained"
+        assert data["events_trained"] == 809
+        assert isolated_model.exists()
+    after_hash = hashlib.sha256(production_model.read_bytes()).hexdigest()
+    assert after_hash == before_hash
+    print("[PASS] POST /api/ml/train used an isolated temporary model path")
 
 
 def test_mitre_techniques_endpoint():
@@ -241,7 +251,6 @@ if __name__ == "__main__":
     test_vulnerabilities()
     test_ml_anomalies_endpoint()
     test_ml_analyze_log_removed()
-    test_ml_train_endpoint()
     test_mitre_techniques_endpoint()
     test_mitre_map_endpoint()
     test_vuln_correlate_endpoint()

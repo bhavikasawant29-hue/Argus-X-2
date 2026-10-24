@@ -22,6 +22,12 @@ MODEL_DIR = Path(__file__).resolve().parent.parent / "data" / "models"
 DEFAULT_MODEL_FILE = MODEL_DIR / "isolation_forest_baseline.joblib"
 MODEL_VERSION = "isolation_forest_v1.0"
 
+
+def _default_model_file() -> Path:
+    """Return an optional test-isolated path, preserving the production default."""
+    configured = os.getenv("ARGUS_X_MODEL_PATH")
+    return Path(configured) if configured else DEFAULT_MODEL_FILE
+
 SOURCE_MAP = {
     "authentication": 0,
     "endpoint": 1,
@@ -248,7 +254,7 @@ def train_anomaly_model(
         ) if is_demo_baseline else None
     }
 
-    target_path = Path(model_path) if model_path else DEFAULT_MODEL_FILE
+    target_path = Path(model_path) if model_path else _default_model_file()
     save_anomaly_model(bundle, target_path)
 
     return {
@@ -270,7 +276,7 @@ def save_anomaly_model(bundle: Dict[str, Any], model_path: Union[str, Path]) -> 
 
 def load_anomaly_model(model_path: Optional[Union[str, Path]] = None) -> Optional[Dict[str, Any]]:
     """Load model bundle from disk if present."""
-    path = Path(model_path) if model_path else DEFAULT_MODEL_FILE
+    path = Path(model_path) if model_path else _default_model_file()
     if not path.exists():
         return None
     try:
