@@ -464,6 +464,14 @@ Endpoint                  | Method | Purpose
 `/api/mitre/techniques`   | GET    | Query local MITRE ATT&CK Enterprise STIX techniques catalog
 `/api/mitre/map`          | POST   | Evidence-based mapping of telemetry to candidate ATT&CK techniques
 
+### Temporary Vulnerability Correlation Status
+
+The Vulnerability Correlation page and Overview metric are temporarily disabled in
+the frontend while the correlation evidence model is stabilized. The underlying
+correlation implementation, tests, vulnerability intelligence endpoints, and
+`POST /api/vulnerabilities/correlate` route remain preserved for later recovery and
+are not part of the normal dashboard workflow during this phase.
+
 FastAPI interactive Swagger documentation is available at:
 `/docs`
 

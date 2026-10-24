@@ -13,6 +13,14 @@ export default function EventInspector({ selectedEvent, onInspectRawEvent, onAsk
   }
 
   const supportingList = selectedEvent.supporting_events || selectedEvent.supporting || [];
+  const evidenceStatus = selectedEvent.evidence_status;
+  const evidenceBadge = evidenceStatus === 'Verified'
+    ? { label: 'VERIFIED EVIDENCE', className: 'border-[#10b981]/30 bg-[#10b981]/10 text-[#10b981]' }
+    : evidenceStatus === 'Inferred'
+      ? { label: 'INFERRED', className: 'border-[#f59e0b]/30 bg-[#f59e0b]/10 text-[#f59e0b]' }
+      : evidenceStatus === 'Insufficient Evidence'
+        ? { label: 'INSUFFICIENT EVIDENCE', className: 'border-[#f59e0b]/30 bg-[#f59e0b]/10 text-[#f59e0b]' }
+        : null;
 
   return (
     <aside className="w-80 border-l border-main bg-surface p-5 flex flex-col justify-between overflow-y-auto shrink-0">
@@ -25,9 +33,11 @@ export default function EventInspector({ selectedEvent, onInspectRawEvent, onAsk
                 ANOMALY
               </span>
             )}
-            <span className="px-2 py-0.5 rounded border border-[#10b981]/30 bg-[#10b981]/10 text-[10px] font-mono-code text-[#10b981] uppercase font-medium">
-              VERIFIED
-            </span>
+            {evidenceBadge && (
+              <span className={`px-2 py-0.5 rounded border text-[10px] font-mono-code uppercase font-medium ${evidenceBadge.className}`}>
+                {evidenceBadge.label}
+              </span>
+            )}
           </div>
         </div>
 

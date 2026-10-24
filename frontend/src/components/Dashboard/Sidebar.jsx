@@ -9,7 +9,6 @@ export default function Sidebar({ activeTab, onSelectTab, isCollapsed, onToggleC
     { id: 'gaps', label: 'Gaps', icon: 'warning' },
     { id: 'impact', label: 'Impact', icon: 'gavel' },
     { id: 'mitre', label: 'MITRE ATT&CK', icon: 'security' },
-    { id: 'vulncorr', label: 'Vuln Correlation', icon: 'bug_report' },
     { id: 'anomalies', label: 'Anomalies & ML', icon: 'auto_awesome' },
     { id: 'ai', label: 'AI Investigator', icon: 'psychology' },
     { id: 'replay', label: 'Replay', icon: 'play_circle' },

@@ -216,21 +216,16 @@ def test_vuln_correlate_endpoint():
           f"{summary['unverified']} unverified)")
 
 
-def test_demo_includes_vuln_correlations():
-    """Verify /api/demo response includes vuln_correlations key from new pipeline."""
+def test_demo_excludes_vuln_correlations_from_active_pipeline():
+    """Correlation is preserved behind its dedicated API, not the active demo pipeline."""
     response = client.post("/api/demo")
     assert response.status_code == 200
     data = response.json()
-    assert "vuln_correlations" in data, "vuln_correlations key missing from /api/demo response"
-    vc = data["vuln_correlations"]
-    assert "correlations" in vc
-    assert "summary" in vc
-    assert "disclaimer" in vc
-    assert "vuln_correlations_total" in data["summary"]
-    assert "vuln_evidence_supported" in data["summary"]
-    print(f"[PASS] POST /api/demo includes vuln_correlations "
-          f"({vc['summary']['total']} total, "
-          f"{vc['summary']['evidence_supported']} evidence_supported)")
+    assert "vuln_correlations" not in data
+    assert "vulnerability_enrichment" not in data
+    assert "vuln_correlations_total" not in data["summary"]
+    assert "vuln_evidence_supported" not in data["summary"]
+    print("[PASS] POST /api/demo keeps vulnerability correlation outside the active pipeline")
 
 
 if __name__ == "__main__":
@@ -250,6 +245,5 @@ if __name__ == "__main__":
     test_mitre_techniques_endpoint()
     test_mitre_map_endpoint()
     test_vuln_correlate_endpoint()
-    test_demo_includes_vuln_correlations()
+    test_demo_excludes_vuln_correlations_from_active_pipeline()
     print("\nALL API TESTS PASSED SUCCESSFULLY!")
-

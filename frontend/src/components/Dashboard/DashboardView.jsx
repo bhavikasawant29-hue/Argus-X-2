@@ -13,7 +13,6 @@ import ReplayTab from './ReplayTab';
 import InfrastructureTab from './InfrastructureTab';
 import MitreTab from './MitreTab';
 import AnomaliesTab from './AnomaliesTab';
-import VulnCorrelationTab from './VulnCorrelationTab';
 
 export default function DashboardView({ investigationData }) {
   const [activeTab, setActiveTab] = useState('overview');
@@ -36,7 +35,6 @@ export default function DashboardView({ investigationData }) {
   const replay = investigationData.replay || [];
   const mitreMappings = investigationData.mitre_mappings || [];
   const anomalies = investigationData.anomalies || [];
-  const vulnCorrelations = investigationData.vuln_correlations || null;
 
   const handleInspectRawEvent = (refId) => {
     const found = timeline.find(e => e.event_id === refId) || evidence.find(e => e.event_id === refId);
@@ -85,14 +83,6 @@ export default function DashboardView({ investigationData }) {
         return <MitreTab mitreMappings={mitreMappings} onInspectRawEvent={handleInspectRawEvent} />;
       case 'anomalies':
         return <AnomaliesTab anomalies={anomalies} onInspectRawEvent={handleInspectRawEvent} />;
-      case 'vulncorr':
-        return (
-          <VulnCorrelationTab
-            vulnCorrelations={vulnCorrelations}
-            onInspectRawEvent={handleInspectRawEvent}
-            onGoToTimeline={() => setActiveTab('timeline')}
-          />
-        );
       case 'ai':
         return (
           <AIInvestigatorTab

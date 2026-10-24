@@ -62,13 +62,13 @@ if r.status_code == 200:
         print(f"      rationale: {c.get('rationale', '')[:100]}...")
         print()
 
-# 3. Demo includes vuln_correlations
+# 3. Demo keeps vuln correlation outside the active pipeline
 r2 = requests.post(f"{BASE}/api/demo", timeout=60)
 check("POST /api/demo returns 200", r2.status_code == 200)
 if r2.status_code == 200:
     d2 = r2.json()
-    check("/api/demo includes 'vuln_correlations'", "vuln_correlations" in d2)
-    check("/api/demo summary includes 'vuln_correlations_total'", "vuln_correlations_total" in d2.get("summary", {}))
+    check("/api/demo excludes active 'vuln_correlations'", "vuln_correlations" not in d2)
+    check("/api/demo summary excludes 'vuln_correlations_total'", "vuln_correlations_total" not in d2.get("summary", {}))
 
 # 4. Verify analyze-log is still absent
 r3 = requests.post(f"{BASE}/api/ml/analyze-log", json={"text": "test"}, timeout=5)

@@ -77,12 +77,6 @@ export default function OverviewTab({ data, selectedEvent, onSelectEvent }) {
             {data.summary?.mitre_techniques_mapped ?? (data.mitre_mappings?.length || 0)}
           </div>
         </div>
-        <div className="p-3 border border-main bg-surface rounded-[4px] space-y-1">
-          <span className="text-[10px] text-muted uppercase">CVE Correlated</span>
-          <div className="text-xl font-semibold text-[#f59e0b]">
-            {data.summary?.vuln_correlations_total ?? (data.vuln_correlations?.summary?.total || 0)}
-          </div>
-        </div>
       </div>
 
       {/* Reconstructed Sequence List */}

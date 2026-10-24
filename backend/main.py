@@ -63,7 +63,7 @@ EXPECTED_STAGES = [
 ]
 
 
-def run_full_analysis(events):
+def run_full_analysis(events, include_vulnerability_correlation=False):
     timeline = reconstruct_attack(events)
     evidence = analyze_evidence(timeline, events)
     confidence = calculate_confidence(evidence)
@@ -75,15 +75,11 @@ def run_full_analysis(events):
     blast_radius = calculate_blast_radius(timeline)
     infrastructure = build_infrastructure_map(timeline, events)
     replay = build_attack_replay(timeline)
-    enriched_timeline = enrich_events_with_vulnerabilities(timeline)
     anomalies = predict_anomalies(events)
     mitre_mappings = map_attack_timeline_to_mitre(timeline, all_events=events)
     anomalous_events_count = sum(1 for a in anomalies if a.get("is_anomaly", False))
 
-    # Vulnerability-to-attack correlation (uses enriched timeline as input)
-    vuln_correlations = correlate_vulnerabilities_to_attack(timeline, enriched_timeline)
-
-    return {
+    result = {
         "summary": {
             "total_events": len(events),
             "reconstructed_events": len(timeline),
@@ -92,8 +88,6 @@ def run_full_analysis(events):
             "evidence_strength": confidence_breakdown.get("strength", "Strong"),
             "anomalies_detected": anomalous_events_count,
             "mitre_techniques_mapped": len(mitre_mappings),
-            "vuln_correlations_total": vuln_correlations["summary"]["total"],
-            "vuln_evidence_supported": vuln_correlations["summary"]["evidence_supported"],
         },
         "timeline": timeline,
         "evidence": evidence,
@@ -106,11 +100,21 @@ def run_full_analysis(events):
         "blast_radius": blast_radius,
         "infrastructure": infrastructure,
         "replay": replay,
-        "vulnerability_enrichment": enriched_timeline,
-        "vuln_correlations": vuln_correlations,
         "anomalies": anomalies,
         "mitre_mappings": mitre_mappings,
     }
+
+    if include_vulnerability_correlation:
+        # Keep the correlation implementation available through its dedicated API
+        # without making the normal investigation workflow depend on it.
+        enriched_timeline = enrich_events_with_vulnerabilities(timeline)
+        vuln_correlations = correlate_vulnerabilities_to_attack(timeline, enriched_timeline)
+        result["vulnerability_enrichment"] = enriched_timeline
+        result["vuln_correlations"] = vuln_correlations
+        result["summary"]["vuln_correlations_total"] = vuln_correlations["summary"]["total"]
+        result["summary"]["vuln_evidence_supported"] = vuln_correlations["summary"]["evidence_supported"]
+
+    return result
 
 
 @app.get("/api/health")
@@ -187,7 +191,7 @@ def correlate_vulnerabilities_endpoint():
     """
     try:
         events = load_all_events()
-        analysis = run_full_analysis(events)
+        analysis = run_full_analysis(events, include_vulnerability_correlation=True)
         return analysis["vuln_correlations"]
     except Exception as exc:
         raise HTTPException(
