@@ -1,0 +1,294 @@
+{
+  "version": "15.1",
+  "count": 16,
+  "techniques": [
+    {
+      "technique_id": "T1078",
+      "subtechnique_id": null,
+      "technique_name": "Valid Accounts",
+      "tactics": [
+        "initial-access",
+        "persistence",
+        "privilege-escalation",
+        "defense-evasion"
+      ],
+      "description": "Adversaries may obtain and abuse credentials of existing accounts as a means of gaining Initial Access, Persistence, Privilege Escalation, or Defense Evasion.",
+      "official_url": "https://attack.mitre.org/techniques/T1078/",
+      "platforms": [
+        "Windows",
+        "Linux",
+        "macOS",
+        "SaaS",
+        "IaaS",
+        "Identity Provider"
+      ],
+      "dataset_version": "15.1",
+      "is_deprecated": false,
+      "is_revoked": false
+    },
+    {
+      "technique_id": "T1078.003",
+      "subtechnique_id": "003",
+      "technique_name": "Valid Accounts: Local Accounts",
+      "tactics": [
+        "initial-access",
+        "persistence",
+        "privilege-escalation",
+        "defense-evasion"
+      ],
+      "description": "Adversaries may obtain and abuse credentials of a local account as a means of gaining Initial Access, Persistence, Privilege Escalation, or Defense Evasion.",
+      "official_url": "https://attack.mitre.org/techniques/T1078/003/",
+      "platforms": [
+        "Windows",
+        "Linux",
+        "macOS"
+      ],
+      "dataset_version": "15.1",
+      "is_deprecated": false,
+      "is_revoked": false
+    },
+    {
+      "technique_id": "T1059",
+      "subtechnique_id": null,
+      "technique_name": "Command and Scripting Interpreter",
+      "tactics": [
+        "execution"
+      ],
+      "description": "Adversaries may abuse command and script interpreters to execute commands, scripts, or binaries.",
+      "official_url": "https://attack.mitre.org/techniques/T1059/",
+      "platforms": [
+        "Windows",
+        "Linux",
+        "macOS"
+      ],
+      "dataset_version": "15.1",
+      "is_deprecated": false,
+      "is_revoked": false
+    },
+    {
+      "technique_id": "T1059.001",
+      "subtechnique_id": "001",
+      "technique_name": "Command and Scripting Interpreter: PowerShell",
+      "tactics": [
+        "execution"
+      ],
+      "description": "Adversaries may abuse PowerShell commands and scripts for execution. PowerShell is a powerful interactive command-line interface and scripting environment included in Windows.",
+      "official_url": "https://attack.mitre.org/techniques/T1059/001/",
+      "platforms": [
+        "Windows"
+      ],
+      "dataset_version": "15.1",
+      "is_deprecated": false,
+      "is_revoked": false
+    },
+    {
+      "technique_id": "T1059.003",
+      "subtechnique_id": "003",
+      "technique_name": "Command and Scripting Interpreter: Windows Command Shell",
+      "tactics": [
+        "execution"
+      ],
+      "description": "Adversaries may abuse the Windows command shell (cmd.exe) for execution.",
+      "official_url": "https://attack.mitre.org/techniques/T1059/003/",
+      "platforms": [
+        "Windows"
+      ],
+      "dataset_version": "15.1",
+      "is_deprecated": false,
+      "is_revoked": false
+    },
+    {
+      "technique_id": "T1003",
+      "subtechnique_id": null,
+      "technique_name": "OS Credential Dumping",
+      "tactics": [
+        "credential-access"
+      ],
+      "description": "Adversaries may attempt to dump credentials to obtain account login and credential material, normally in the form of a hash or a clear text password, from the operating system and software.",
+      "official_url": "https://attack.mitre.org/techniques/T1003/",
+      "platforms": [
+        "Windows",
+        "Linux",
+        "macOS"
+      ],
+      "dataset_version": "15.1",
+      "is_deprecated": false,
+      "is_revoked": false
+    },
+    {
+      "technique_id": "T1003.001",
+      "subtechnique_id": "001",
+      "technique_name": "OS Credential Dumping: LSASS Memory",
+      "tactics": [
+        "credential-access"
+      ],
+      "description": "Adversaries may attempt to access credential material stored in the process memory of the Local Security Authority Subsystem Service (LSASS).",
+      "official_url": "https://attack.mitre.org/techniques/T1003/001/",
+      "platforms": [
+        "Windows"
+      ],
+      "dataset_version": "15.1",
+      "is_deprecated": false,
+      "is_revoked": false
+    },
+    {
+      "technique_id": "T1021",
+      "subtechnique_id": null,
+      "technique_name": "Remote Services",
+      "tactics": [
+        "lateral-movement"
+      ],
+      "description": "Adversaries may use Valid Accounts to log into a service that accepts remote connections, such as telnet, SSH, and VNC.",
+      "official_url": "https://attack.mitre.org/techniques/T1021/",
+      "platforms": [
+        "Windows",
+        "Linux",
+        "macOS"
+      ],
+      "dataset_version": "15.1",
+      "is_deprecated": false,
+      "is_revoked": false
+    },
+    {
+      "technique_id": "T1021.002",
+      "subtechnique_id": "002",
+      "technique_name": "Remote Services: SMB/Windows Admin Shares",
+      "tactics": [
+        "lateral-movement"
+      ],
+      "description": "Adversaries may use Valid Accounts to interact with remote computers over Server Message Block (SMB).",
+      "official_url": "https://attack.mitre.org/techniques/T1021/002/",
+      "platforms": [
+        "Windows"
+      ],
+      "dataset_version": "15.1",
+      "is_deprecated": false,
+      "is_revoked": false
+    },
+    {
+      "technique_id": "T1068",
+      "subtechnique_id": null,
+      "technique_name": "Exploitation for Privilege Escalation",
+      "tactics": [
+        "privilege-escalation"
+      ],
+      "description": "Adversaries may exploit software vulnerabilities in an attempt to elevate privileges on a system.",
+      "official_url": "https://attack.mitre.org/techniques/T1068/",
+      "platforms": [
+        "Windows",
+        "Linux",
+        "macOS"
+      ],
+      "dataset_version": "15.1",
+      "is_deprecated": false,
+      "is_revoked": false
+    },
+    {
+      "technique_id": "T1134",
+      "subtechnique_id": null,
+      "technique_name": "Access Token Manipulation",
+      "tactics": [
+        "privilege-escalation",
+        "defense-evasion"
+      ],
+      "description": "Adversaries may modify access tokens to operate under a different user or system security context to perform actions and bypass access controls.",
+      "official_url": "https://attack.mitre.org/techniques/T1134/",
+      "platforms": [
+        "Windows"
+      ],
+      "dataset_version": "15.1",
+      "is_deprecated": false,
+      "is_revoked": false
+    },
+    {
+      "technique_id": "T1190",
+      "subtechnique_id": null,
+      "technique_name": "Exploit Public-Facing Application",
+      "tactics": [
+        "initial-access"
+      ],
+      "description": "Adversaries may attempt to exploit a weakness in an Internet-facing computer or program using software, bugs, glitches, or vulnerabilities.",
+      "official_url": "https://attack.mitre.org/techniques/T1190/",
+      "platforms": [
+        "Windows",
+        "Linux",
+        "macOS"
+      ],
+      "dataset_version": "15.1",
+      "is_deprecated": false,
+      "is_revoked": false
+    },
+    {
+      "technique_id": "T1048",
+      "subtechnique_id": null,
+      "technique_name": "Exfiltration Over Alternative Protocol",
+      "tactics": [
+        "exfiltration"
+      ],
+      "description": "Adversaries may steal data by exfiltrating it over a different protocol than that of the existing command and control channel.",
+      "official_url": "https://attack.mitre.org/techniques/T1048/",
+      "platforms": [
+        "Windows",
+        "Linux",
+        "macOS"
+      ],
+      "dataset_version": "15.1",
+      "is_deprecated": false,
+      "is_revoked": false
+    },
+    {
+      "technique_id": "T1505.003",
+      "subtechnique_id": "003",
+      "technique_name": "Server Software Component: Web Shell",
+      "tactics": [
+        "persistence"
+      ],
+      "description": "Adversaries may backdoor web servers with a web shell to establish persistent access to systems.",
+      "official_url": "https://attack.mitre.org/techniques/T1505/003/",
+      "platforms": [
+        "Windows",
+        "Linux",
+        "macOS"
+      ],
+      "dataset_version": "15.1",
+      "is_deprecated": false,
+      "is_revoked": false
+    },
+    {
+      "technique_id": "T1046",
+      "subtechnique_id": null,
+      "technique_name": "Network Service Discovery",
+      "tactics": [
+        "discovery"
+      ],
+      "description": "Adversaries may attempt to get a listing of services running on remote hosts and local network infrastructure.",
+      "official_url": "https://attack.mitre.org/techniques/T1046/",
+      "platforms": [
+        "Windows",
+        "Linux",
+        "macOS"
+      ],
+      "dataset_version": "15.1",
+      "is_deprecated": false,
+      "is_revoked": false
+    },
+    {
+      "technique_id": "T1562",
+      "subtechnique_id": null,
+      "technique_name": "Impair Defenses",
+      "tactics": [
+        "defense-evasion"
+      ],
+      "description": "Adversaries may maliciously modify or disable components of a security tool or environment to evade detection.",
+      "official_url": "https://attack.mitre.org/techniques/T1562/",
+      "platforms": [
+        "Windows",
+        "Linux",
+        "macOS"
+      ],
+      "dataset_version": "15.1",
+      "is_deprecated": false,
+      "is_revoked": false
+    }
+  ]
+}

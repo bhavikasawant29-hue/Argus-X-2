@@ -48,22 +48,40 @@ export default function OverviewTab({ data, selectedEvent, onSelectEvent }) {
       </div>
 
       {/* Metrics Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 font-mono-code">
-        <div className="p-4 border border-main bg-surface rounded-[4px] space-y-1">
-          <span className="text-[11px] text-muted uppercase">Reconstructed Events</span>
-          <div className="text-2xl font-semibold text-primary">{timeline.length}</div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 font-mono-code">
+        <div className="p-3 border border-main bg-surface rounded-[4px] space-y-1">
+          <span className="text-[10px] text-muted uppercase">Reconstructed</span>
+          <div className="text-xl font-semibold text-primary">{timeline.length}</div>
         </div>
-        <div className="p-4 border border-main bg-surface rounded-[4px] space-y-1">
-          <span className="text-[11px] text-muted uppercase">Affected Hosts</span>
-          <div className="text-2xl font-semibold text-primary">{blastRadius.host_count || 0}</div>
+        <div className="p-3 border border-main bg-surface rounded-[4px] space-y-1">
+          <span className="text-[10px] text-muted uppercase">Affected Hosts</span>
+          <div className="text-xl font-semibold text-primary">{blastRadius.host_count || 0}</div>
         </div>
-        <div className="p-4 border border-main bg-surface rounded-[4px] space-y-1">
-          <span className="text-[11px] text-muted uppercase">Affected Users</span>
-          <div className="text-2xl font-semibold text-primary">{blastRadius.user_count || 0}</div>
+        <div className="p-3 border border-main bg-surface rounded-[4px] space-y-1">
+          <span className="text-[10px] text-muted uppercase">Affected Users</span>
+          <div className="text-xl font-semibold text-primary">{blastRadius.user_count || 0}</div>
         </div>
-        <div className="p-4 border border-main bg-surface rounded-[4px] space-y-1">
-          <span className="text-[11px] text-muted uppercase">Critical Assets</span>
-          <div className="text-2xl font-semibold text-[#ef4444]">{blastRadius.critical_asset_count || 0}</div>
+        <div className="p-3 border border-main bg-surface rounded-[4px] space-y-1">
+          <span className="text-[10px] text-muted uppercase">Critical Assets</span>
+          <div className="text-xl font-semibold text-[#ef4444]">{blastRadius.critical_asset_count || 0}</div>
+        </div>
+        <div className="p-3 border border-main bg-surface rounded-[4px] space-y-1">
+          <span className="text-[10px] text-muted uppercase">ML Anomalies</span>
+          <div className="text-xl font-semibold text-[#f59e0b]">
+            {data.summary?.anomalies_detected ?? (data.anomalies?.filter(a => a.is_anomaly)?.length || 0)}
+          </div>
+        </div>
+        <div className="p-3 border border-main bg-surface rounded-[4px] space-y-1">
+          <span className="text-[10px] text-muted uppercase">MITRE Mapped</span>
+          <div className="text-xl font-semibold text-[#10b981]">
+            {data.summary?.mitre_techniques_mapped ?? (data.mitre_mappings?.length || 0)}
+          </div>
+        </div>
+        <div className="p-3 border border-main bg-surface rounded-[4px] space-y-1">
+          <span className="text-[10px] text-muted uppercase">CVE Correlated</span>
+          <div className="text-xl font-semibold text-[#f59e0b]">
+            {data.summary?.vuln_correlations_total ?? (data.vuln_correlations?.summary?.total || 0)}
+          </div>
         </div>
       </div>
 

@@ -1,0 +1,76 @@
+warning: in the working copy of 'data/README.md', LF will be replaced by CRLF the next time Git touches it
+[1mdiff --git a/data/README.md b/data/README.md[m
+[1mindex 57f8089..c057fae 100644[m
+[1m--- a/data/README.md[m
+[1m+++ b/data/README.md[m
+[36m@@ -1,15 +1,59 @@[m
+[31m-# ARGUS-X Synthetic Telemetry[m
+[32m+[m[32m# ARGUS-X Dataset[m
+ [m
+[31m-Team-generated synthetic dataset for the ARGUS-X prototype.[m
+[32m+[m[32m## Overview[m
+ [m
+[31m-Sources:[m
+[31m-- authentication_logs.csv[m
+[31m-- endpoint_logs.csv[m
+[31m-- network_logs.csv[m
+[31m-- application_logs.csv[m
+[32m+[m[32mThis directory contains the synthetic security telemetry used[m
+[32m+[m[32mby ARGUS-X for attack reconstruction and investigation.[m
+ [m
+[31m-The dataset contains benign events mixed with a known multi-stage attack:[m
+[31m-Failed Login -> Successful Login -> PowerShell Execution -> Credential Access[m
+[31m--> Lateral Movement -> Privilege Escalation -> Database Access[m
+[32m+[m[32mThe dataset contains 809 events across four telemetry sources:[m
+ [m
+[31m-The known attack sequence is ground truth for prototype evaluation.[m
+[32m+[m[32m- Authentication: 232 events[m
+[32m+[m[32m- Endpoint: 223 events[m
+[32m+[m[32m- Network: 203 events[m
+[32m+[m[32m- Application: 151 events[m
+[32m+[m
+[32m+[m[32m## Data Sources[m
+[32m+[m
+[32m+[m[32m### authentication_logs.csv[m
+[32m+[m[32mAuthentication and login activity.[m
+[32m+[m
+[32m+[m[32m### endpoint_logs.csv[m
+[32m+[m[32mEndpoint activity such as process execution,[m
+[32m+[m[32mcredential access, and privilege escalation.[m
+[32m+[m
+[32m+[m[32m### network_logs.csv[m
+[32m+[m[32mNetwork communication, lateral movement,[m
+[32m+[m[32mand database connections.[m
+[32m+[m
+[32m+[m[32m### application_logs.csv[m
+[32m+[m[32mApplication-level database access activity.[m
+[32m+[m
+[32m+[m[32m## Common Event Schema[m
+[32m+[m
+[32m+[m[32mEach telemetry source is normalized into the ARGUS-X[m
+[32m+[m[32mSecurityEvent structure:[m
+[32m+[m
+[32m+[m[32m- event_id[m
+[32m+[m[32m- timestamp[m
+[32m+[m[32m- source_type[m
+[32m+[m[32m- event_type[m
+[32m+[m[32m- user[m
+[32m+[m[32m- source_ip[m
+[32m+[m[32m- source_host[m
+[32m+[m[32m- destination_host[m
+[32m+[m[32m- action[m
+[32m+[m[32m- severity[m
+[32m+[m
+[32m+[m[32m## Dataset Characteristics[m
+[32m+[m
+[32m+[m[32mThe dataset contains both attack-related events and[m
+[32m+[m[32mlegitimate background activity. This allows ARGUS-X[m
+[32m+[m[32mto demonstrate correlation and reconstruction while[m
+[32m+[m[32mkeeping unrelated telemetry outside the reconstructed[m
+[32m+[m[32mattack path.[m
+[32m+[m
+[32m+[m[32m## Privacy[m
+[32m+[m
+[32m+[m[32mThis is synthetic security telemetry created for[m
+[32m+[m[32mdemonstration and evaluation. It does not contain[m
+[32m+[m[32mreal user or organizational security logs.[m

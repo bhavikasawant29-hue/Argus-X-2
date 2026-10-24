@@ -117,7 +117,12 @@ System Architecture
                        ↓
 ┌─────────────────────────────────────────────┐
 │          INGESTION & NORMALIZATION          │
-│        CSV Parsing + Pydantic Schema        │
+│        OCSF v1.1.0 Schema Normalizer        │
+└──────────────────────┬──────────────────────┘
+                       ↓
+┌─────────────────────────────────────────────┐
+│       ASSET INVENTORY & VULN ENRICHMENT     │
+│       NVD CVE 2.0 | CISA KEV | FIRST EPSS   │
 └──────────────────────┬──────────────────────┘
                        ↓
 ┌─────────────────────────────────────────────┐
@@ -132,52 +137,75 @@ System Architecture
                        ↓
 ┌─────────────────────────────────────────────┐
 │            EVIDENCE & INTELLIGENCE          │
-│ Evidence | Confidence | Gaps | MITRE        │
+│ 4-Tier Evidence | Confidence | Gaps | Graph │
 └──────────────────────┬──────────────────────┘
                        ↓
 ┌─────────────────────────────────────────────┐
 │             IMPACT & INVESTIGATION          │
-│ Blast Radius | Replay | What-If | AI        │
+│ Blast Radius | Replay | What-If | AI / Det  │
 └──────────────────────┬──────────────────────┘
                        ↓
 ┌─────────────────────────────────────────────┐
 │             REACT INVESTIGATION UI          │
 └─────────────────────────────────────────────┘
+
+OCSF v1.1.0 Schema Alignment
+
+ARGUS-X formally aligns its normalization engine with the Open Cybersecurity Schema Framework (OCSF) v1.1.0 specification:
+
+Source Type        | OCSF Class UID | OCSF Class Name        | Category UID | Category Name
+-------------------|----------------|------------------------|--------------|-----------------------------
+Endpoint (Process) | 1007           | Process Activity       | 1            | System Activity
+Endpoint (File)    | 1001           | File Activity          | 1            | System Activity
+Authentication     | 3002           | Authentication         | 3            | Identity & Access Management
+Network            | 4001           | Network Activity       | 4            | Network Activity
+Application        | 6002           | Application Activity   | 6            | Application Activity
+
+Standardized attributes:
+- `category_uid` and `category_name`: Canonical OCSF domain categorization.
+- `class_uid` and `class_name`: Standard event classification.
+- `activity_id` and `type_uid`: Explicit activity IDs (Launch=1, Terminate=2, Logon=1, Logoff=2, Open=1, Close=2, Access=1, Other=99) and composite `type_uid` (`class_uid * 100 + activity_id`).
+- `status_id`: 1=Success, 2=Failure, 0=Unknown based on action outcomes.
+- `severity_id`: 0=Unknown, 1=Informational, 2=Low, 3=Medium, 4=High, 5=Critical, 6=Fatal.
+- `unmapped`: Preserves original event IDs, raw telemetry records, and normalization diagnostics for strict evidence auditability.
+
+Vulnerability Intelligence & Asset Matching
+
+ARGUS-X connects enterprise asset inventories with live vulnerability feeds:
+- Sources: NVD CVE API 2.0, CISA Known Exploited Vulnerabilities (KEV), and FIRST EPSS API.
+- Version-Aware Matching: Evaluates CPE criteria, inclusive/exclusive version boundaries (`version_start_including`, `version_end_excluding`), and pinned CPE releases using `packaging.version`.
+- Match Status Taxonomy:
+  - `version_affected`: Confirmed within affected version boundaries.
+  - `version_not_affected`: Confirmed safe outside vulnerability boundaries.
+  - `insufficient_data`: Vendor and product match, but version data is absent or inconclusive.
+  - `product_mismatch` / `vendor_mismatch`: Non-matching software components.
+- Threat Context: Enriched events include CVSS scores, KEV status, and EPSS scores as exploitation indicators (not proof of compromise).
+
 Correlation Approach
 
-ARGUS-X uses a deterministic, rule-based correlation approach.
+ARGUS-X uses an explainable, deterministic correlation model:
 
-Events receive correlation strength based on contextual relationships:
+Signal                                | Weight | Rationale
+--------------------------------------|--------|-------------------------------------
+Same Source Host                      | +3     | Co-located entity activity
+Network Pivot Transition              | +3     | Lateral transition (prev. dest == next source)
+Same Destination Host                 | +2     | Converging operations against target
+Auth-to-Execution Sequence            | +2     | Immediate process launch following login
+Same User Principal                   | +1     | Common identity attribution
+Same Source IP                        | +1     | Common network ingress point
+Within 60 Seconds                     | +1     | Strong temporal proximity
 
-Same User              +1
-Same Source Host       +3
-Same Destination Host  +2
-Within 60 seconds      +1
+Events scoring 3 or higher are correlated, recording matched fields and natural-language transition rationales.
 
-A correlation score of 3 or higher is considered correlated.
+Evidence Model (4-Tier Taxonomy)
 
-Conceptually:
+Status / Tier         | Definition
+----------------------|---------------------------------------------------------------------------------
+Corroborated          | Observed in primary log and corroborated across >=2 distinct telemetry sources
+Directly Observed     | Directly recorded in telemetry with at least 1 supporting contextual signal
+Inferred              | Supported by attack progression and temporal sequence; lacks supporting events
+Insufficient Evidence | Lacks critical telemetry (e.g. missing user or host identification)
 
-C(ei, ej) =
-    User Match
-  + Source Host Match
-  + Destination Host Match
-  + Temporal Proximity
-
-Correlation is only one stage of the process. The reconstruction engine additionally considers temporal ordering and attack-stage progression to determine whether correlated events form a coherent attack path.
-
-Evidence Model
-
-ARGUS-X categorizes evidence into three states:
-
-Status	Meaning
-Verified	Directly supported by available telemetry
-Inferred	Supported by multiple related signals but not directly observed
-Unsupported	Insufficient evidence to establish the conclusion
-
-An unknown or missing signal is not automatically treated as false.
-
-This allows ARGUS-X to explicitly represent uncertainty instead of hiding it.
 
 Demonstration Dataset
 
@@ -384,9 +412,15 @@ pip install -r requirements.txt
 
 Create a .env file inside the backend directory:
 
+```env
 OPENAI_API_KEY=your_openai_api_key
 
-Never commit the .env file or API key to GitHub.
+# Optional Hugging Face configuration for log text classification:
+HF_TOKEN=your_huggingface_user_access_token
+HF_MODEL_ID=facebook/bart-large-mnli
+```
+
+Never commit the .env file or API tokens to Git.
 
 Start the backend:
 
@@ -412,27 +446,96 @@ The frontend will be available at the local Vite development URL shown in the te
 The frontend communicates with the FastAPI backend through the configured API URL.
 
 API Endpoints
-Endpoint	Method	Purpose
-/api/health	GET	Backend health check
-/api/demo	GET	Run analysis on demonstration telemetry
-/api/analyze	POST	Analyze uploaded telemetry
-/api/investigate	POST	Run evidence-grounded investigation
-/api/counterfactual	POST	Run counterfactual attack analysis
 
-FastAPI's interactive API documentation is available at:
+Endpoint                  | Method | Purpose
+--------------------------|--------|---------------------------------------------------------------
+`/api/health`             | GET    | Backend service health check
+`/api/demo`               | POST   | Execute full analysis on benchmark synthetic dataset (809 events)
+`/api/analyze`            | POST   | Ingest and analyze uploaded multipart CSV telemetry files
+`/api/inventory`          | GET    | Retrieve enterprise asset catalog and installed software profiles
+`/api/ocsf/normalize`     | POST   | Normalize batch telemetry events to OCSF v1.1.0 with diagnostics
+`/api/vulnerabilities`    | GET    | Retrieve ingested CVE records, KEV status, and EPSS scores
+`/api/vulnerabilities/ingest` | POST | Trigger live feed ingestion (NVD CVE, CISA KEV, FIRST EPSS)
+`/api/investigate`        | POST   | Evidence-grounded investigation (LLM + deterministic fallback)
+`/api/counterfactual`     | POST   | Counterfactual simulation (simulate blocking specific stage)
+`/api/ml/anomalies`       | POST   | Run Isolation Forest statistical anomaly detection on telemetry
+`/api/ml/analyze-log`     | POST   | Zero-shot log message text classification via hosted Hugging Face
+`/api/ml/train`           | POST   | Train and persist updated Isolation Forest baseline artifact
+`/api/mitre/techniques`   | GET    | Query local MITRE ATT&CK Enterprise STIX techniques catalog
+`/api/mitre/map`          | POST   | Evidence-based mapping of telemetry to candidate ATT&CK techniques
 
-/docs
-Testing
+FastAPI interactive Swagger documentation is available at:
+`/docs`
 
-The backend includes tests for core evidence and API functionality.
+Testing & Verification
 
-Example:
+Execute the automated test suites from the `backend/` directory:
 
-pytest
+```bash
+cd backend
 
-Frontend production build:
+# 1. OCSF v1.1.0 Compliance & Normalization Suite
+python test_ocsf_compliance.py
 
-npm run build
+# 2. Asset Inventory & Vulnerability Enrichment Suite
+python test_asset_enrichment.py
+
+# 3. Real CVE Version Boundaries & Matcher Suite
+python test_vulnerability_matcher.py
+
+# 4. Correlation, Reconstruction & 4-Tier Evidence Suite
+python test_reconstruction_engine.py
+
+# 5. AI Investigator Resilience & Deterministic Fallback Suite
+python test_investigator_resilience.py
+
+# 6. Core Evidence & Pipeline Integration Suite
+python test_evidence.py
+
+# 7. ML Isolation Forest Anomaly Detection Suite
+python test_anomaly_detector.py
+
+# 8. Hugging Face Log Classifier & Secret Hygiene Suite
+python test_hf_log_analyzer.py
+
+# 9. MITRE ATT&CK STIX Dataset & Evidence Mapping Suite
+python test_mitre_mapper.py
+
+# 10. FastAPI Endpoints & Integration Suite
+python test_api.py
+```
+
+### Machine Learning & Threat Intelligence Architecture
+
+#### 1. ML-Based Anomaly Detection (`backend/engine/anomaly_detector.py`)
+- **Model**: Scikit-learn `IsolationForest` (unsupervised outlier detection, `n_estimators=100`, configurable `contamination=0.05`, `random_state=42`).
+- **Feature Extraction**: 10 engineered features across all four telemetry sources:
+  - Source type numeric encoding (Authentication, Endpoint, Network, Application)
+  - Log-scaled user and host event frequencies
+  - Failed authentication burst counts
+  - Numerical severity mapping (Informational to Critical)
+  - Inter-arrival time deltas between events
+  - Distinct destination host count (lateral scanning indicator)
+  - External or lateral pivot flags
+  - Privileged/script action keyword indicators
+  - Payload / context string length
+- **Persistence**: Fitted pipeline saved using `joblib` into `backend/data/models/isolation_forest_baseline.joblib` (excluded from Git).
+- **Semantics**: Anomaly scores quantify statistical divergence from baseline patterns. **An anomaly score is NOT an attack probability.**
+
+#### 2. Pretrained Hugging Face Integration (`backend/engine/hf_log_analyzer.py`)
+- **Model**: Hosted Hugging Face Inference API utilizing `facebook/bart-large-mnli` (or configured via `HF_MODEL_ID`).
+- **Configuration**: `HF_TOKEN` read from backend environment. Zero credential exposure: tokens are never exposed in exceptions, responses, or client payloads.
+- **Resilience**: 10-second timeout, input truncation to 512 characters, and graceful degradation returning status `"token_missing"` or `"provider_error"` without crashing the pipeline.
+- **Semantics**: Text classification labels are candidate hypotheses requiring telemetry corroboration.
+
+#### 3. MITRE ATT&CK Enterprise Mapping (`backend/engine/mitre_mapper.py`)
+- **Dataset**: Machine-readable STIX 2.1 Enterprise ATT&CK matrix cached locally in `backend/data/mitre_attack/enterprise_techniques_cache.json` with dynamic update support from `attack-stix-data`.
+- **Evidence-Based Rule Engine**: Evaluates reconstructed events against technical telemetry criteria (process command line, LSASS memory indicators, SMB/RDP ports, auth tokens).
+- **Status Taxonomy**:
+  - `evidence_supported_candidate`: Technical indicators and cross-source corroboration observed.
+  - `candidate_requires_review`: Behavioral pattern detected but specific technical proofs are partial.
+  - `unmapped`: Telemetry lacks necessary technical detail.
+
 Deployment
 Frontend
 

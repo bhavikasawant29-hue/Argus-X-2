@@ -1,14 +1,34 @@
+# Byte-compiled / optimized / DLL files
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual Environments
 .venv/
 venv/
-.envstitch_argus_x_security_telemetry_platform.zip
+env/
+ENV/
+
+# Environment Variables and Secrets (STRICTLY IGNORED)
+.env
+.env.*
+*.env
 backend/.env
-backend/.env
-stitch_argus_x_security_telemetry_platform.zip
+
+# Frontend / Node
 node_modules/
 dist/
-backend/.env
+.vite/
+
+# Build artifacts & Archive backups
 stitch_argus_x_security_telemetry_platform.zip
-node_modules/
-dist/
+*.zip
+*.tar.gz
+*.tmp
+
+# ML Model Artifacts
+*.joblib
+backend/data/models/
+backend/models_saved/

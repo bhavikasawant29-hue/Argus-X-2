@@ -19,9 +19,16 @@ export default function EventInspector({ selectedEvent, onInspectRawEvent, onAsk
       <div className="space-y-5">
         <div className="flex items-center justify-between pb-3 border-b border-main">
           <span className="text-xs font-mono-code text-muted uppercase tracking-wider">Event Inspector</span>
-          <span className="px-2 py-0.5 rounded border border-[#10b981]/30 bg-[#10b981]/10 text-[10px] font-mono-code text-[#10b981] uppercase font-medium">
-            VERIFIED
-          </span>
+          <div className="flex items-center space-x-1.5">
+            {selectedEvent.is_anomaly && (
+              <span className="px-2 py-0.5 rounded border border-[#ef4444]/30 bg-[#ef4444]/10 text-[10px] font-mono-code text-[#ef4444] uppercase font-medium">
+                ANOMALY
+              </span>
+            )}
+            <span className="px-2 py-0.5 rounded border border-[#10b981]/30 bg-[#10b981]/10 text-[10px] font-mono-code text-[#10b981] uppercase font-medium">
+              VERIFIED
+            </span>
+          </div>
         </div>
 
         <div>
