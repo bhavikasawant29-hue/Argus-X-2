@@ -259,6 +259,26 @@ def test_cvss_severity_labels():
     print("  PASS: CVSS severity labels correct at all thresholds")
 
 
+def test_same_host_unrelated_event_is_not_supporting_evidence():
+    enriched = [_make_enriched("UNRELATED", "SRV-02", "CVE-2021-44228", "version_affected")]
+    result = correlate_vulnerabilities_to_attack(TIMELINE_FULL, enriched)
+    correlation = result["correlations"][0]
+    assert correlation["correlation_status"] == "unverified"
+    assert correlation["related_attack_event_ids"] == []
+    assert "explicit vulnerability-associated timeline event" in correlation["missing_evidence"]
+
+
+def test_duplicate_supporting_events_are_unique_and_explicit():
+    enriched = [
+        _make_enriched("NETWORK_0002", "SRV-02", "CVE-2021-44228", "version_affected"),
+        _make_enriched("NETWORK_0002", "SRV-02", "CVE-2021-44228", "version_affected"),
+    ]
+    result = correlate_vulnerabilities_to_attack(TIMELINE_FULL, enriched)
+    correlation = result["correlations"][0]
+    assert correlation["related_attack_event_ids"] == ["NETWORK_0002"]
+    assert len(correlation["supporting_evidence"]) == 1
+
+
 if __name__ == "__main__":
     print("Running ARGUS-X Vulnerability Correlation Engine Test Suite...\n")
     test_evidence_supported_exploitation_stage_on_vulnerable_host()

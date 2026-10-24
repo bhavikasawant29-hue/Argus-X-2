@@ -90,7 +90,9 @@ def _assess_correlation(
             "No telemetry links this host to the attack path."
         )
 
-    # Check for exploitation-relevant attack stages on this host
+    # Only events explicitly associated with the enriched vulnerability match
+    # are evidence. Do not treat every event involving the same host as CVE
+    # evidence.
     stages_on_host = {ev.get("stage", "") for ev in host_events}
     exploitation_stages = stages_on_host & _EXPLOITATION_STAGE_HINTS
     initial_access_stages = stages_on_host & _INITIAL_ACCESS_STAGES
@@ -177,6 +179,9 @@ def correlate_vulnerabilities_to_attack(
 
     # Index: host → attack timeline events involving that host
     timeline_host_events = _get_timeline_hosts(timeline)
+    events_by_id = {
+        ev.get("event_id"): ev for ev in timeline if ev.get("event_id")
+    }
 
     # Collect unique (host, cve_id) pairs from enriched events, deduplicating
     seen: set = set()
@@ -198,11 +203,28 @@ def correlate_vulnerabilities_to_attack(
                 continue
             seen.add(dedup_key)
 
-            host_timeline_events = timeline_host_events.get(target_host, [])
+            enriched_event_id = enriched_ev.get("event_id")
+            explicit_event = events_by_id.get(enriched_event_id)
+            if explicit_event and target_host in {
+                _normalize_host(explicit_event.get("source_host")),
+                _normalize_host(explicit_event.get("destination_host")),
+            }:
+                host_timeline_events = [explicit_event]
+            else:
+                host_timeline_events = []
             status, rationale = _assess_correlation(match, host_timeline_events, cve_id)
 
-            related_event_ids = [ev.get("event_id") for ev in host_timeline_events]
+            related_event_ids = sorted(
+                str(ev["event_id"])
+                for ev in host_timeline_events
+                if ev.get("event_id")
+            )
             related_stages = sorted({ev.get("stage", "") for ev in host_timeline_events} - {""})
+            missing_evidence = []
+            if not host_timeline_events:
+                missing_evidence.append("explicit vulnerability-associated timeline event")
+            if status != "evidence_supported":
+                missing_evidence.append("direct exploitation evidence")
 
             correlations.append({
                 "cve_id": cve_id,
@@ -220,6 +242,11 @@ def correlate_vulnerabilities_to_attack(
                 "rationale": rationale,
                 "related_attack_event_ids": related_event_ids,
                 "related_attack_stages": related_stages,
+                "supporting_evidence": [
+                    {"event_id": event_id, "stages": related_stages}
+                    for event_id in related_event_ids
+                ],
+                "missing_evidence": sorted(set(missing_evidence)),
             })
 
     # Sort: evidence_supported first, then plausible, then unverified; within each, by CVSS desc
