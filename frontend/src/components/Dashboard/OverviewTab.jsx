@@ -1,6 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { generateInvestigationPDF } from '../../services/reportGenerator';
 
 export default function OverviewTab({ data, selectedEvent, onSelectEvent }) {
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportError, setExportError] = useState(null);
+  const [exportSuccess, setExportSuccess] = useState(null);
+
   if (!data) return null;
 
   const timeline = data.timeline || [];
@@ -9,8 +14,60 @@ export default function OverviewTab({ data, selectedEvent, onSelectEvent }) {
   const blastRadius = data.blast_radius || {};
   const attackPath = blastRadius.attack_path || [];
 
+  const handleDownloadReport = () => {
+    setIsExporting(true);
+    setExportError(null);
+    setExportSuccess(null);
+
+    try {
+      const invId = data.investigation_id || data.id || `INV-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${timeline[0]?.event_id || 'DEMO'}`;
+      const savedName = generateInvestigationPDF(data, {
+        investigationId: invId,
+        whatifResults: data.whatif,
+      });
+
+      setExportSuccess(`Investigation report generated: ${savedName}`);
+      setTimeout(() => setExportSuccess(null), 5000);
+    } catch (err) {
+      setExportError(err.message || 'Failed to generate PDF report.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
+      {/* Alert Notices */}
+      {exportError && (
+        <div className="p-3.5 border border-[#ef4444]/40 bg-[#ef4444]/15 rounded-[4px] text-xs font-mono-code text-[#ef4444] flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <span className="material-symbols-outlined text-sm">error</span>
+            <span>Report Export Failed: {exportError}</span>
+          </div>
+          <button
+            onClick={() => setExportError(null)}
+            className="text-xs text-muted hover:text-[#ef4444] underline"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
+      {exportSuccess && (
+        <div className="p-3.5 border border-[#10b981]/40 bg-[#10b981]/15 rounded-[4px] text-xs font-mono-code text-[#10b981] flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <span className="material-symbols-outlined text-sm">check_circle</span>
+            <span>✓ {exportSuccess}</span>
+          </div>
+          <button
+            onClick={() => setExportSuccess(null)}
+            className="text-xs text-muted hover:text-[#10b981] underline"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
       {/* Reconstructed Banner */}
       <div className="p-6 border border-main bg-surface rounded-[4px] space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-4">
@@ -20,13 +77,26 @@ export default function OverviewTab({ data, selectedEvent, onSelectEvent }) {
               ATTACK RECONSTRUCTED
             </h2>
           </div>
-          <div className="flex items-center space-x-4 text-xs font-mono-code">
-            <span className="px-2.5 py-1 rounded-[3px] bg-[#10b981]/10 border border-[#10b981]/30 text-[#10b981] font-semibold">
+          <div className="flex flex-wrap items-center gap-3 text-xs font-mono-code">
+            <span className="px-2.5 py-1 rounded-[3px] bg-[#10b981]/10 border border-[#10b981]/30 text-[#10b981] font-semibold" title="System-generated assessment based on corroborating telemetry">
               Confidence: {confidence}%
             </span>
-            <span className="px-2.5 py-1 rounded-[3px] bg-[#10b981]/10 border border-[#10b981]/30 text-[#10b981] font-semibold">
+            <span className="px-2.5 py-1 rounded-[3px] bg-[#10b981]/10 border border-[#10b981]/30 text-[#10b981] font-semibold" title="System-generated assessment of attack progression coverage">
               Completeness: {completeness}%
             </span>
+
+            {/* Download Investigation Report Button */}
+            <button
+              onClick={handleDownloadReport}
+              disabled={isExporting}
+              className="flex items-center space-x-1.5 px-3 py-1 rounded-[3px] bg-[#10b981]/20 hover:bg-[#10b981]/30 border border-[#10b981]/60 text-[#10b981] font-bold text-xs font-mono-code transition-all shadow-sm active:scale-95 disabled:opacity-50 cursor-pointer"
+              title="Download Comprehensive Investigation PDF Report"
+            >
+              <span className="material-symbols-outlined text-sm">
+                {isExporting ? 'hourglass_top' : 'picture_as_pdf'}
+              </span>
+              <span>{isExporting ? 'Generating Report...' : 'Download Report'}</span>
+            </button>
           </div>
         </div>
 

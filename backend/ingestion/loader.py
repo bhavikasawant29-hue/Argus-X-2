@@ -1,10 +1,8 @@
-
 """CSV ingestion for ARGUS-X security telemetry."""
 
+import csv
 import io
 from pathlib import Path
-
-import pandas as pd
 
 from models.event import SecurityEvent
 from normalization.ocsf_normalization import normalize_event
@@ -16,13 +14,19 @@ DATA_DIR = Path(__file__).resolve().parents[2] / "data" / "raw"
 
 def get_value(row, column):
     """Return a CSV cell as a string, or None if missing."""
-    if column not in row.index or pd.isna(row[column]):
+    if column not in row:
         return None
-    return str(row[column])
+    val = row[column]
+    if val is None:
+        return None
+    val_str = str(val).strip()
+    if val_str == "" or val_str.lower() in ("nan", "none", "null"):
+        return None
+    return val_str
 
 
 def _row_to_event(row, index, source_type):
-    """Convert one pandas row into the existing SecurityEvent model."""
+    """Convert one CSV dictionary row into the existing SecurityEvent model."""
     return SecurityEvent(
         event_id=f"{source_type.upper()}_{index + 1:04d}",
         timestamp=get_value(row, "timestamp"),
@@ -42,11 +46,12 @@ def load_csv_from_bytes(file_bytes, source_type):
     if not file_bytes or len(file_bytes.strip()) == 0:
         return []
 
-    df = pd.read_csv(io.BytesIO(file_bytes))
+    text = file_bytes.decode("utf-8", errors="replace")
+    reader = csv.DictReader(io.StringIO(text))
 
     return [
         _row_to_event(row, index, source_type)
-        for index, (_, row) in enumerate(df.iterrows())
+        for index, row in enumerate(reader)
     ]
 
 
@@ -57,12 +62,12 @@ def load_csv(filename, source_type):
     if not file_path.exists():
         raise FileNotFoundError(f"CSV file not found: {file_path}")
 
-    df = pd.read_csv(file_path)
-
-    return [
-        _row_to_event(row, index, source_type)
-        for index, (_, row) in enumerate(df.iterrows())
-    ]
+    with open(file_path, mode="r", encoding="utf-8", errors="replace") as f:
+        reader = csv.DictReader(f)
+        return [
+            _row_to_event(row, index, source_type)
+            for index, row in enumerate(reader)
+        ]
 
 
 def load_all_events():
@@ -158,4 +163,3 @@ def load_events_with_normalization() -> tuple[list[SecurityEvent], list[dict], d
     }
 
     return events, ocsf_events, report
-

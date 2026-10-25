@@ -32,6 +32,7 @@ from engine.vulnerability_matcher import enrich_events_with_vulnerabilities
 from engine.anomaly_detector import predict_anomalies, train_anomaly_model, evaluate_anomaly_model
 from engine.mitre_mapper import map_attack_timeline_to_mitre, get_mitre_repo
 from engine.vuln_correlation import correlate_vulnerabilities_to_attack
+from engine.report import build_investigation_report_data
 from normalization.ocsf_normalization import normalize_event, normalize_events
 
 app = FastAPI(
@@ -494,4 +495,35 @@ def map_mitre_endpoint(req: MitreMapRequest):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"MITRE mapping failed: {str(exc)}"
+        )
+
+
+class ReportDataRequest(BaseModel):
+    investigation_id: Optional[str] = None
+    title: Optional[str] = None
+    investigation_data: Optional[Dict[str, Any]] = None
+
+
+@app.post("/api/report/data")
+def generate_report_data_endpoint(req: ReportDataRequest):
+    """
+    Generate auditable, evidence-traceable investigation report data
+    for PDF and compliance export from the active investigation or baseline demo.
+    """
+    try:
+        if req.investigation_data is not None:
+            inv_data = req.investigation_data
+        else:
+            events = load_all_events()
+            inv_data = run_full_analysis(events)
+
+        return build_investigation_report_data(
+            data=inv_data,
+            investigation_id=req.investigation_id,
+            title=req.title
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Report data generation failed: {str(exc)}"
         )
